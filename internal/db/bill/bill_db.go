@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	debug "encore.app/internal/logger"
+	"github.com/bojanz/currency"
 
 	customerrors "encore.app/internal/custom_errors"
 )
@@ -30,9 +31,10 @@ type Bill struct {
 }
 
 type TransactionDetail struct {
-	Timestamp int64   `json:"timestamp"`
-	ItemName  string  `json:"itemName"`
-	Amount    float64 `json:"amount"`
+	Timestamp int64  `json:"timestamp"`
+	ItemName  string `json:"itemName"`
+	// stored as USD
+	Amount currency.Amount `json:"amount"`
 }
 
 func New() *BillDB {

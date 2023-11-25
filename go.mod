@@ -10,6 +10,11 @@ require (
 )
 
 require (
+	github.com/bojanz/currency v1.2.0 // indirect
+	github.com/cockroachdb/apd/v3 v3.2.1 // indirect
+)
+
+require (
 	encore.dev v1.27.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect

@@ -31,6 +31,8 @@ type Handler struct {
 	billService BillService
 	client      client.Client
 	worker      worker.Worker
+	// 1 USD to other currency
+	currencies map[string]string
 }
 
 // entry point, dependency injection
@@ -64,6 +66,10 @@ func initHandler() (*Handler, error) {
 		billService: billService,
 		client:      c,
 		worker:      w,
+		currencies: map[string]string{
+			"USD": "1",
+			"GEL": "2.71",
+		},
 	}, nil
 }
 
