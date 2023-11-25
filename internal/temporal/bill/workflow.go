@@ -3,6 +3,7 @@ package temporalbill
 import (
 	"time"
 
+	db "encore.app/internal/db/bill"
 	debug "encore.app/internal/logger"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -34,10 +35,15 @@ func NewWorkFlow(billService BillService) *WorkFlow {
 	return &WorkFlow{billService: billService}
 }
 
-func (w *WorkFlow) Create(ctx workflow.Context, billID string) error {
+func (w *WorkFlow) Create(ctx workflow.Context, billID string) (db.Bill, error) {
+	logger.Info("creating...", billID)
 	// Apply the options.
 	ctx = workflow.WithActivityOptions(ctx, options)
-	return workflow.ExecuteActivity(ctx, w.billService.Create, billID).Get(ctx, nil)
+	activities := NewActivity(w.billService)
+
+	var bill db.Bill
+	err := workflow.ExecuteActivity(ctx, activities.Create, billID).Get(ctx, &bill)
+	return bill, err
 }
 
 func (w *WorkFlow) AddBill(ctx workflow.Context, billID string, billDetail BillDetail) error {
@@ -63,5 +69,6 @@ func (w *WorkFlow) AddBill(ctx workflow.Context, billID string, billDetail BillD
 	}
 
 	// If confirmed, add invoice
-	return workflow.ExecuteActivity(ctx, w.billService.Add, billID, billDetail).Get(ctx, nil)
+	activities := NewActivity(w.billService)
+	return workflow.ExecuteActivity(ctx, activities.Add, billID, billDetail).Get(ctx, nil)
 }

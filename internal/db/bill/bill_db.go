@@ -5,8 +5,12 @@ import (
 	"sync"
 	"time"
 
+	debug "encore.app/internal/logger"
+
 	customerrors "encore.app/internal/custom_errors"
 )
+
+var logger = debug.Logger
 
 type BillDB struct {
 	mu    sync.Mutex
@@ -37,12 +41,13 @@ func New() *BillDB {
 	return &b
 }
 
-func (b *BillDB) Create(billID string) error {
+func (b *BillDB) Create(billID string) (Bill, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	if _, ok := b.Bills[billID]; ok {
-		return customerrors.NewAppError(fmt.Sprintf("%s already exist", billID))
+	if bill, ok := b.Bills[billID]; ok {
+		logger.Info("bill: ", bill)
+		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s already exist", billID))
 	}
 
 	b.Bills[billID] = Bill{
@@ -51,21 +56,21 @@ func (b *BillDB) Create(billID string) error {
 		Transactions: make(map[int64]TransactionDetail),
 	}
 
-	return nil
+	return b.Bills[billID], nil
 }
 
-func (b *BillDB) Add(billID string, date time.Time, item string, amount float64) error {
+func (b *BillDB) Add(billID string, date time.Time, item string, amount float64) (Bill, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
 	if _, ok := b.Bills[billID]; !ok {
-		return customerrors.NewAppError(fmt.Sprintf("%s does not exist", billID))
+		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s does not exist", billID))
 	}
 
 	bill := b.Bills[billID]
 
 	if bill.Status == CLOSED {
-		return customerrors.NewAppError(fmt.Sprintf("%s does not exist", billID))
+		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s does not exist", billID))
 	}
 
 	timestamp := date.Unix()
@@ -75,7 +80,7 @@ func (b *BillDB) Add(billID string, date time.Time, item string, amount float64)
 	}
 
 	b.Bills[billID] = bill
-	return nil
+	return b.Bills[billID], nil
 }
 
 func (b *BillDB) Close(billID string) error {

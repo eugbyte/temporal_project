@@ -5,17 +5,25 @@ import (
 	"fmt"
 	"time"
 
+	debug "encore.app/internal/logger"
+
 	db "encore.app/internal/db/bill"
 	temporalbill "encore.app/internal/temporal/bill"
+	"encore.dev"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 )
 
-const taskQ = "bill-task-queue"
+var envName = encore.Meta().Environment.Name
+var taskQ = envName + "task-queue"
+
+const workFlowID = "bill-id"
+
+var logger = debug.Logger
 
 type BillService interface {
-	Create(billID string) error
-	Add(billID string, date time.Time, item string, amount float64) error
+	Create(billID string) (db.Bill, error)
+	Add(billID string, date time.Time, item string, amount float64) (db.Bill, error)
 	Close(billID string) error
 	Get(billID string) (db.Bill, error)
 }
@@ -44,7 +52,10 @@ func initHandler() (*Handler, error) {
 	}
 
 	workflows := temporalbill.NewWorkFlow(billService)
+	activities := temporalbill.NewActivity(billService)
+
 	w.RegisterWorkflow(workflows.Create)
+	w.RegisterActivity(activities.Create)
 
 	return &Handler{
 		billService: billService,
