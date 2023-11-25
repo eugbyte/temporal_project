@@ -48,7 +48,7 @@ func (w *WorkFlow) CreateBill(ctx workflow.Context, billID string) (db.Bill, err
 	return bill, err
 }
 
-func (w *WorkFlow) AddBill(ctx workflow.Context, billID string, billDetail BillDetail) error {
+func (w *WorkFlow) AddBill(ctx workflow.Context, billID string, billDetail db.TransactionDetail) error {
 	// Apply the options.
 	ctx = workflow.WithActivityOptions(ctx, options)
 

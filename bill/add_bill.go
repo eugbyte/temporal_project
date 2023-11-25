@@ -3,42 +3,43 @@ package billhandler
 import (
 	"context"
 
-	customerrors "encore.app/internal/custom_errors"
 	db "encore.app/internal/db/bill"
 	temporalbill "encore.app/internal/temporal/bill"
 	"go.temporal.io/sdk/client"
 )
 
+type AddBillResp struct {
+	BillID     string
+	WorkflowID string
+}
+
 //encore:api public method=PUT path=/bill/:billID
-func (h *Handler) AddBill(ctx context.Context, billID string, transactionDetail db.TransactionDetail) (*MessageResponse, error) {
+func (h *Handler) AddBill(ctx context.Context, billID string, transactionDetail db.TransactionDetail) (*AddBillResp, error) {
 	logger.Info("PUT:", transactionDetail)
 
+	workflowID := genWorkFlowID(billID)
 	options := client.StartWorkflowOptions{
-		ID:        genWorkFlowID("add", billID),
+		ID:        workflowID,
 		TaskQueue: taskQ,
 	}
 
-	h.workflowIDs.Set(billID, genWorkFlowID("add", billID))
-
 	workflows := temporalbill.NewWorkFlow(h.billService)
-	_, err := h.client.ExecuteWorkflow(ctx, options, workflows.CreateBill, billID)
+	_, err := h.client.ExecuteWorkflow(ctx, options, workflows.AddBill, billID, transactionDetail)
 	if err != nil {
 		return nil, err
 	}
 
-	return &MessageResponse{
-		Message: "transaction to add to bill started, awaiting confirmation",
+	return &AddBillResp{
+		BillID:     billID,
+		WorkflowID: workflowID,
 	}, nil
 }
 
-func (h *Handler) Confirm(ctx context.Context, billID string, confirmed bool) (*MessageResponse, error) {
-	workflowId, ok := h.workflowIDs.Get(billID)
-	if !ok {
-		return nil, customerrors.NewAppError("workflow id not found")
-	}
-
-	runId := ""
-	err := h.client.SignalWorkflow(ctx, workflowId, runId, temporalbill.SignalChannel, confirmed)
+//encore:api public method=GET path=/confirm-bill/:billID/:workflowID
+func (h *Handler) Confirm(ctx context.Context, billID string, workflowID string) (*MessageResponse, error) {
+	runId := "" // we did not store runId we can safely leave it empty
+	confirmed := true
+	err := h.client.SignalWorkflow(ctx, workflowID, runId, temporalbill.SignalChannel, confirmed)
 	if err != nil {
 		return nil, err
 	}

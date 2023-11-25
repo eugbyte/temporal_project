@@ -3,7 +3,6 @@ package billhandler
 import (
 	"context"
 	"fmt"
-	"time"
 
 	debug "encore.app/internal/logger"
 
@@ -11,7 +10,6 @@ import (
 	temporalbill "encore.app/internal/temporal/bill"
 	"encore.dev"
 	gonanoid "github.com/matoous/go-nanoid/v2"
-	cmap "github.com/orcaman/concurrent-map/v2"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 )
@@ -23,7 +21,7 @@ var logger = debug.Logger
 
 type BillService interface {
 	Create(billID string) (db.Bill, error)
-	Add(billID string, date time.Time, item string, amount float64) (db.Bill, error)
+	Add(billID string, billDetail db.TransactionDetail) (db.Bill, error)
 	Close(billID string) error
 	Get(billID string) (db.Bill, error)
 }
@@ -33,8 +31,6 @@ type Handler struct {
 	billService BillService
 	client      client.Client
 	worker      worker.Worker
-	// save workflows for signals to intercept
-	workflowIDs cmap.ConcurrentMap[string, string]
 }
 
 // entry point, dependency injection
@@ -57,13 +53,15 @@ func initHandler() (*Handler, error) {
 	activities := temporalbill.NewActivity(billService)
 
 	w.RegisterWorkflow(workflows.CreateBill)
+	w.RegisterWorkflow(workflows.AddBill)
+
 	w.RegisterActivity(activities.CreateBill)
+	w.RegisterActivity(activities.AddBill)
 
 	return &Handler{
 		billService: billService,
 		client:      c,
 		worker:      w,
-		workflowIDs: cmap.New[string](),
 	}, nil
 }
 
@@ -72,8 +70,7 @@ func (s *Handler) Shutdown(force context.Context) {
 	s.worker.Stop()
 }
 
-// action - "create" or "add"
-func genWorkFlowID(action string, billID string) string {
+func genWorkFlowID(billID string) string {
 	randID, _ := gonanoid.New()
-	return fmt.Sprintf("%s-bill-%s-%s", action, billID, randID)
+	return fmt.Sprintf("bill-%s-%s", billID, randID)
 }

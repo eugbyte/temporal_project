@@ -3,7 +3,6 @@ package billdb
 import (
 	"fmt"
 	"sync"
-	"time"
 
 	debug "encore.app/internal/logger"
 
@@ -60,7 +59,7 @@ func (b *BillDB) Create(billID string) (Bill, error) {
 	return b.Bills[billID], nil
 }
 
-func (b *BillDB) Add(billID string, date time.Time, item string, amount float64) (Bill, error) {
+func (b *BillDB) Add(billID string, detail TransactionDetail) (Bill, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -74,11 +73,7 @@ func (b *BillDB) Add(billID string, date time.Time, item string, amount float64)
 		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s does not exist", billID))
 	}
 
-	timestamp := date.Unix()
-	bill.Transactions[timestamp] = TransactionDetail{
-		ItemName: item,
-		Amount:   amount,
-	}
+	bill.Transactions = append(bill.Transactions, detail)
 
 	b.Bills[billID] = bill
 	return b.Bills[billID], nil

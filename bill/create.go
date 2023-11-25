@@ -17,7 +17,7 @@ func (h *Handler) Create(ctx context.Context, billID string) (*db.Bill, error) {
 	logger.Info("billID: ", billID)
 
 	options := client.StartWorkflowOptions{
-		ID:        genWorkFlowID("create", billID),
+		ID:        genWorkFlowID(billID),
 		TaskQueue: taskQ,
 	}
 
