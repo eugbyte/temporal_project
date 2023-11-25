@@ -1,33 +1,20 @@
 package temporalbill
 
 import (
-	"time"
-
 	db "encore.app/internal/db/bill"
 	debug "encore.app/internal/logger"
-	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
 var logger = debug.Logger
 
-var retrypolicy = &temporal.RetryPolicy{
-	InitialInterval:        time.Second,
-	BackoffCoefficient:     2.0,
-	MaximumInterval:        100 * time.Second,
-	MaximumAttempts:        0, // unlimited retries
-	NonRetryableErrorTypes: []string{"ApplicationError"},
-}
-
-var options = workflow.ActivityOptions{
-	// Timeout options specify when to automatically timeout Activity functions.
-	StartToCloseTimeout: time.Minute,
-	// Optionally provide a customized RetryPolicy.
-	// Temporal retries failed Activities by default.
-	RetryPolicy: retrypolicy,
-}
-
 const SignalChannel = "confirm-invoice"
+
+type BillService interface {
+	Create(billID string) (db.Bill, error)
+	Add(billID string, billDetail db.TransactionDetail) (db.Bill, error)
+	Close(billID string) (db.Bill, error)
+}
 
 type WorkFlow struct {
 	billService BillService
@@ -48,7 +35,7 @@ func (w *WorkFlow) CreateBill(ctx workflow.Context, billID string) (db.Bill, err
 	return bill, err
 }
 
-func (w *WorkFlow) AddBill(ctx workflow.Context, billID string, billDetail db.TransactionDetail) error {
+func (w *WorkFlow) IncreaseBill(ctx workflow.Context, billID string, billDetail db.TransactionDetail) error {
 	// Apply the options.
 	ctx = workflow.WithActivityOptions(ctx, options)
 
@@ -72,5 +59,16 @@ func (w *WorkFlow) AddBill(ctx workflow.Context, billID string, billDetail db.Tr
 
 	// If confirmed, add invoice
 	activities := NewActivity(w.billService)
-	return workflow.ExecuteActivity(ctx, activities.AddBill, billID, billDetail).Get(ctx, nil)
+	return workflow.ExecuteActivity(ctx, activities.IncreaseBill, billID, billDetail).Get(ctx, nil)
+}
+
+func (w *WorkFlow) CloseBill(ctx workflow.Context, billID string) (db.Bill, error) {
+	// Apply the options.
+	ctx = workflow.WithActivityOptions(ctx, options)
+
+	activities := NewActivity(w.billService)
+
+	var bill db.Bill
+	err := workflow.ExecuteActivity(ctx, activities.CloseBill, billID).Get(ctx, &bill)
+	return bill, err
 }

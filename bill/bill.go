@@ -22,7 +22,7 @@ var logger = debug.Logger
 type BillService interface {
 	Create(billID string) (db.Bill, error)
 	Add(billID string, billDetail db.TransactionDetail) (db.Bill, error)
-	Close(billID string) error
+	Close(billID string) (db.Bill, error)
 	Get(billID string) (db.Bill, error)
 }
 
@@ -53,10 +53,12 @@ func initHandler() (*Handler, error) {
 	activities := temporalbill.NewActivity(billService)
 
 	w.RegisterWorkflow(workflows.CreateBill)
-	w.RegisterWorkflow(workflows.AddBill)
+	w.RegisterWorkflow(workflows.IncreaseBill)
+	w.RegisterWorkflow(workflows.CloseBill)
 
 	w.RegisterActivity(activities.CreateBill)
-	w.RegisterActivity(activities.AddBill)
+	w.RegisterActivity(activities.IncreaseBill)
+	w.RegisterActivity(activities.CloseBill)
 
 	return &Handler{
 		billService: billService,

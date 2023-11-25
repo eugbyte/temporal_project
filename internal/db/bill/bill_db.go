@@ -79,18 +79,19 @@ func (b *BillDB) Add(billID string, detail TransactionDetail) (Bill, error) {
 	return b.Bills[billID], nil
 }
 
-func (b *BillDB) Close(billID string) error {
+func (b *BillDB) Close(billID string) (Bill, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
 	if _, ok := b.Bills[billID]; !ok {
-		return customerrors.NewAppError(fmt.Sprintf("%s does not exist", billID))
+		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s does not exist", billID))
 	}
 
 	bill := b.Bills[billID]
 	bill.Status = CLOSED
 
-	return nil
+	b.Bills[billID] = bill
+	return bill, nil
 }
 
 func (b *BillDB) Get(billID string) (Bill, error) {

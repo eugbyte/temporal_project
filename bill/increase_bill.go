@@ -8,13 +8,13 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-type AddBillResp struct {
+type IncreaseBillResp struct {
 	BillID     string
 	WorkflowID string
 }
 
 //encore:api public method=PUT path=/bill/:billID
-func (h *Handler) AddBill(ctx context.Context, billID string, transactionDetail db.TransactionDetail) (*AddBillResp, error) {
+func (h *Handler) IncreaseBill(ctx context.Context, billID string, transactionDetail db.TransactionDetail) (*IncreaseBillResp, error) {
 	logger.Info("PUT:", transactionDetail)
 
 	workflowID := genWorkFlowID(billID)
@@ -24,19 +24,19 @@ func (h *Handler) AddBill(ctx context.Context, billID string, transactionDetail 
 	}
 
 	workflows := temporalbill.NewWorkFlow(h.billService)
-	_, err := h.client.ExecuteWorkflow(ctx, options, workflows.AddBill, billID, transactionDetail)
+	_, err := h.client.ExecuteWorkflow(ctx, options, workflows.IncreaseBill, billID, transactionDetail)
 	if err != nil {
 		return nil, err
 	}
 
-	return &AddBillResp{
+	return &IncreaseBillResp{
 		BillID:     billID,
 		WorkflowID: workflowID,
 	}, nil
 }
 
-//encore:api public method=GET path=/confirm-bill/:billID/:workflowID
-func (h *Handler) Confirm(ctx context.Context, billID string, workflowID string) (*MessageResponse, error) {
+//encore:api public method=GET path=/confirm/bill/:billID/:workflowID
+func (h *Handler) ConfirmBillIncrease(ctx context.Context, billID string, workflowID string) (*MessageResponse, error) {
 	runId := "" // we did not store runId we can safely leave it empty
 	confirmed := true
 	err := h.client.SignalWorkflow(ctx, workflowID, runId, temporalbill.SignalChannel, confirmed)
