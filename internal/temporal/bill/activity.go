@@ -21,11 +21,7 @@ func NewActivity(billService BillService) *BillActivity {
 	return &BillActivity{billService: billService}
 }
 
-func (a *BillActivity) Confirm(ctx context.Context, confirmed bool) bool {
-	return confirmed
-}
-
-func (a *BillActivity) Create(ctx context.Context, billID string) (db.Bill, error) {
+func (a *BillActivity) CreateBill(ctx context.Context, billID string) (db.Bill, error) {
 	logger.Info("Activity: ", billID)
 	return a.billService.Create(billID)
 }
@@ -36,10 +32,10 @@ type BillDetail struct {
 	Amount float64
 }
 
-func (a *BillActivity) Add(ctx context.Context, billID string, billDetail BillDetail) (db.Bill, error) {
+func (a *BillActivity) AddBill(ctx context.Context, billID string, billDetail BillDetail) (db.Bill, error) {
 	return a.billService.Add(billID, billDetail.Date, billDetail.Item, billDetail.Amount)
 }
 
-func (a *BillActivity) Close(ctx context.Context, billID string) error {
+func (a *BillActivity) CloseBill(ctx context.Context, billID string) error {
 	return a.billService.Close(billID)
 }

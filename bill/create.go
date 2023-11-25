@@ -15,13 +15,14 @@ type CreateResponse struct {
 //encore:api public method=POST path=/bill/:billID
 func (h *Handler) Create(ctx context.Context, billID string) (*db.Bill, error) {
 	logger.Info("billID: ", billID)
+
 	options := client.StartWorkflowOptions{
-		ID:        workFlowID,
+		ID:        genWorkFlowID("create", billID),
 		TaskQueue: taskQ,
 	}
 
 	workflows := temporalbill.NewWorkFlow(h.billService)
-	we, err := h.client.ExecuteWorkflow(ctx, options, workflows.Create, billID)
+	we, err := h.client.ExecuteWorkflow(ctx, options, workflows.CreateBill, billID)
 	if err != nil {
 		return nil, err
 	}

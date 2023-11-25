@@ -27,6 +27,8 @@ var options = workflow.ActivityOptions{
 	RetryPolicy: retrypolicy,
 }
 
+const SignalChannel = "confirm-invoice"
+
 type WorkFlow struct {
 	billService BillService
 }
@@ -35,14 +37,14 @@ func NewWorkFlow(billService BillService) *WorkFlow {
 	return &WorkFlow{billService: billService}
 }
 
-func (w *WorkFlow) Create(ctx workflow.Context, billID string) (db.Bill, error) {
+func (w *WorkFlow) CreateBill(ctx workflow.Context, billID string) (db.Bill, error) {
 	logger.Info("creating...", billID)
 	// Apply the options.
 	ctx = workflow.WithActivityOptions(ctx, options)
 	activities := NewActivity(w.billService)
 
 	var bill db.Bill
-	err := workflow.ExecuteActivity(ctx, activities.Create, billID).Get(ctx, &bill)
+	err := workflow.ExecuteActivity(ctx, activities.CreateBill, billID).Get(ctx, &bill)
 	return bill, err
 }
 
@@ -52,7 +54,7 @@ func (w *WorkFlow) AddBill(ctx workflow.Context, billID string, billDetail BillD
 
 	// Wait for confirmation before adding to invoice
 	selector := workflow.NewSelector(ctx)
-	signalCh := workflow.GetSignalChannel(ctx, "confirmInvoice")
+	signalCh := workflow.GetSignalChannel(ctx, SignalChannel)
 
 	var confirmed bool = false
 	// implement selector reciever via signal channel
@@ -70,5 +72,5 @@ func (w *WorkFlow) AddBill(ctx workflow.Context, billID string, billDetail BillD
 
 	// If confirmed, add invoice
 	activities := NewActivity(w.billService)
-	return workflow.ExecuteActivity(ctx, activities.Add, billID, billDetail).Get(ctx, nil)
+	return workflow.ExecuteActivity(ctx, activities.AddBill, billID, billDetail).Get(ctx, nil)
 }

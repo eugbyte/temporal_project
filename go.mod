@@ -3,6 +3,8 @@ module encore.app
 go 1.18
 
 require (
+	github.com/matoous/go-nanoid/v2 v2.0.0
+	github.com/orcaman/concurrent-map/v2 v2.0.1
 	go.temporal.io/sdk v1.25.1
 	go.uber.org/zap v1.10.0
 )

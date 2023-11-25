@@ -25,14 +25,15 @@ const (
 )
 
 type Bill struct {
-	ID           string                      `json:"ID"`
-	Status       Status                      `json:"status"`
-	Transactions map[int64]TransactionDetail `json:"transactions"` // Unix timestamp against $amount
+	ID           string              `json:"ID"`
+	Status       Status              `json:"status"`
+	Transactions []TransactionDetail `json:"transactions"` // Unix timestamp against $amount
 }
 
 type TransactionDetail struct {
-	ItemName string
-	Amount   float64
+	Timestamp int64   `json:"timestamp"`
+	ItemName  string  `json:"itemName"`
+	Amount    float64 `json:"amount"`
 }
 
 func New() *BillDB {
@@ -53,7 +54,7 @@ func (b *BillDB) Create(billID string) (Bill, error) {
 	b.Bills[billID] = Bill{
 		ID:           billID,
 		Status:       OPEN,
-		Transactions: make(map[int64]TransactionDetail),
+		Transactions: make([]TransactionDetail, 0),
 	}
 
 	return b.Bills[billID], nil

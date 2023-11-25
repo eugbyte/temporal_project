@@ -10,14 +10,14 @@ import (
 	db "encore.app/internal/db/bill"
 	temporalbill "encore.app/internal/temporal/bill"
 	"encore.dev"
+	gonanoid "github.com/matoous/go-nanoid/v2"
+	cmap "github.com/orcaman/concurrent-map/v2"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 )
 
 var envName = encore.Meta().Environment.Name
 var taskQ = envName + "task-queue"
-
-const workFlowID = "bill-id"
 
 var logger = debug.Logger
 
@@ -33,9 +33,11 @@ type Handler struct {
 	billService BillService
 	client      client.Client
 	worker      worker.Worker
+	// save workflows for signals to intercept
+	workflowIDs cmap.ConcurrentMap[string, string]
 }
 
-// dependency injection
+// entry point, dependency injection
 func initHandler() (*Handler, error) {
 	billService := db.New()
 
@@ -54,17 +56,24 @@ func initHandler() (*Handler, error) {
 	workflows := temporalbill.NewWorkFlow(billService)
 	activities := temporalbill.NewActivity(billService)
 
-	w.RegisterWorkflow(workflows.Create)
-	w.RegisterActivity(activities.Create)
+	w.RegisterWorkflow(workflows.CreateBill)
+	w.RegisterActivity(activities.CreateBill)
 
 	return &Handler{
 		billService: billService,
 		client:      c,
 		worker:      w,
+		workflowIDs: cmap.New[string](),
 	}, nil
 }
 
 func (s *Handler) Shutdown(force context.Context) {
 	s.client.Close()
 	s.worker.Stop()
+}
+
+// action - "create" or "add"
+func genWorkFlowID(action string, billID string) string {
+	randID, _ := gonanoid.New()
+	return fmt.Sprintf("%s-bill-%s-%s", action, billID, randID)
 }
