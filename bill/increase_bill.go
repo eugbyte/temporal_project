@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strconv"
 
-	customerrors "encore.app/internal/custom_errors"
+	customerrors "encore.app/internal/custom_error"
 	db "encore.app/internal/db/bill"
-	"encore.app/internal/temporal/bill/workflows"
+	workflows "encore.app/internal/temporal/bill/workflow"
 	"go.temporal.io/sdk/client"
 )
 
