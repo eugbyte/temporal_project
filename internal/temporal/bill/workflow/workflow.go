@@ -23,7 +23,6 @@ func IncreaseBill(ctx workflow.Context, billID string, billDetail db.Transaction
 	logger.Info("starting increase bill")
 	// Apply the options.
 	ctx = workflow.WithActivityOptions(ctx, options)
-	activities := NewActivities(w.billService)
 
 	// Wait for confirmation before adding to invoice
 	selector := workflow.NewSelector(ctx)
