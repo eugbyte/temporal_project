@@ -1,6 +1,7 @@
 package billdb
 
 import (
+	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -93,6 +94,10 @@ func (b *BillDB) Close(billID string) (Bill, error) {
 	}
 
 	bill := b.Bills[billID]
+
+	if bill.Status == CLOSED {
+		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s already closed", billID))
+	}
 	bill.Status = CLOSED
 
 	b.Bills[billID] = bill
@@ -109,4 +114,15 @@ func (b *BillDB) Get(billID string) (Bill, error) {
 		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s does not exist", billID))
 	}
 	return b.Bills[billID], nil
+}
+
+func DeepCopy(bill Bill) (Bill, error) {
+	var billCopy Bill = Bill{}
+	byts, err := json.Marshal(bill)
+	if err != nil {
+		return billCopy, err
+	}
+	json.Unmarshal(byts, &billCopy)
+	return billCopy, err
+
 }
