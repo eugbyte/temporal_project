@@ -1,11 +1,15 @@
-package workflows
+package activities
 
 import (
 	"context"
 	"fmt"
 
+	debug "encore.app/internal/logger"
+
 	db "encore.app/internal/db/bill"
 )
+
+var logger = debug.Logger
 
 type BillService interface {
 	Create(billID string) (db.Bill, error)
@@ -20,6 +24,8 @@ func init() {
 	// but there seems to be conflicting practices regarding whether DI is best practice (https://github.com/temporalio/sdk-java/issues/745).
 	billService = db.BillService
 }
+
+// Note that Activities must be named differently from Workflows, otherwise the test mocking fails.
 
 func CreateBillActivity(ctx context.Context, billID string) (db.Bill, error) {
 	logger.Info("Activity: ", billID)
