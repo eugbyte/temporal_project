@@ -21,7 +21,7 @@ func (h *Handler) CloseBill(ctx context.Context, billID string) (*CloseBillResp,
 		TaskQueue: taskQ,
 	}
 
-	workflows := temporalbill.NewWorkFlow(h.billService)
+	workflows := temporalbill.NewWorkFlows(h.billService)
 	we, err := h.client.ExecuteWorkflow(ctx, options, workflows.CloseBill, billID)
 	if err != nil {
 		return nil, err

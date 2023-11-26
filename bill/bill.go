@@ -51,8 +51,8 @@ func initHandler() (*Handler, error) {
 		return nil, fmt.Errorf("start temporal worker: %v", err)
 	}
 
-	workflows := temporalbill.NewWorkFlow(billService)
-	activities := temporalbill.NewActivity(billService)
+	workflows := temporalbill.NewWorkFlows(billService)
+	activities := temporalbill.NewActivities(billService)
 
 	w.RegisterWorkflow(workflows.CreateBill)
 	w.RegisterWorkflow(workflows.IncreaseBill)

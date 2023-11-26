@@ -21,7 +21,7 @@ func (h *Handler) Create(ctx context.Context, billID string) (*db.Bill, error) {
 		TaskQueue: taskQ,
 	}
 
-	workflows := temporalbill.NewWorkFlow(h.billService)
+	workflows := temporalbill.NewWorkFlows(h.billService)
 	we, err := h.client.ExecuteWorkflow(ctx, options, workflows.CreateBill, billID)
 	if err != nil {
 		return nil, err

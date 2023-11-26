@@ -20,7 +20,7 @@ type WorkFlow struct {
 	billService BillService
 }
 
-func NewWorkFlow(billService BillService) *WorkFlow {
+func NewWorkFlows(billService BillService) *WorkFlow {
 	return &WorkFlow{billService: billService}
 }
 
@@ -28,7 +28,7 @@ func (w *WorkFlow) CreateBill(ctx workflow.Context, billID string) (db.Bill, err
 	logger.Info("creating...", billID)
 	// Apply the options.
 	ctx = workflow.WithActivityOptions(ctx, options)
-	activities := NewActivity(w.billService)
+	activities := NewActivities(w.billService)
 
 	var bill db.Bill
 	err := workflow.ExecuteActivity(ctx, activities.CreateBill, billID).Get(ctx, &bill)
@@ -58,7 +58,7 @@ func (w *WorkFlow) IncreaseBill(ctx workflow.Context, billID string, billDetail 
 	}
 
 	// If confirmed, add invoice
-	activities := NewActivity(w.billService)
+	activities := NewActivities(w.billService)
 	return workflow.ExecuteActivity(ctx, activities.IncreaseBill, billID, billDetail).Get(ctx, nil)
 }
 
@@ -66,7 +66,7 @@ func (w *WorkFlow) CloseBill(ctx workflow.Context, billID string) (db.Bill, erro
 	// Apply the options.
 	ctx = workflow.WithActivityOptions(ctx, options)
 
-	activities := NewActivity(w.billService)
+	activities := NewActivities(w.billService)
 
 	var bill db.Bill
 	err := workflow.ExecuteActivity(ctx, activities.CloseBill, billID).Get(ctx, &bill)

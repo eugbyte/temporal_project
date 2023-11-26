@@ -10,7 +10,7 @@ type BillActivity struct {
 	billService BillService
 }
 
-func NewActivity(billService BillService) *BillActivity {
+func NewActivities(billService BillService) *BillActivity {
 	return &BillActivity{billService: billService}
 }
 

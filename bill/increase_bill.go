@@ -40,7 +40,7 @@ func (h *Handler) IncreaseBill(ctx context.Context, billID string, billDetail db
 		TaskQueue: taskQ,
 	}
 
-	workflows := temporalbill.NewWorkFlow(h.billService)
+	workflows := temporalbill.NewWorkFlows(h.billService)
 	_, err = h.client.ExecuteWorkflow(ctx, options, workflows.IncreaseBill, billID, billDetail)
 	if err != nil {
 		return nil, err
