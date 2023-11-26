@@ -38,7 +38,7 @@ type Handler struct {
 
 // entry point, dependency injection
 func initHandler() (*Handler, error) {
-	billService := db.New()
+	billService := db.BillService
 
 	c, err := client.Dial(client.Options{})
 	if err != nil {

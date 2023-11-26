@@ -37,6 +37,9 @@ type TransactionDetail struct {
 	Amount currency.Amount `json:"amount"`
 }
 
+// Singleton instance to be used by both the Handlers and Temporal workers.
+var BillService = New()
+
 func New() *BillDB {
 	b := BillDB{}
 	b.Bills = make(map[string]Bill)

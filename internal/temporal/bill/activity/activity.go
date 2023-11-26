@@ -2,6 +2,7 @@ package activity
 
 import (
 	"context"
+	"fmt"
 
 	debug "encore.app/internal/logger"
 
@@ -16,7 +17,13 @@ type BillService interface {
 	Close(billID string) (db.Bill, error)
 }
 
-var billService BillService = db.New()
+var billService BillService
+
+func init() {
+	// alternatively, create a struct with { billService BillService } for dependency injection,
+	// but there seems to be conflicting practices regarding whether DI is best practice (https://github.com/temporalio/sdk-java/issues/745).
+	billService = db.BillService
+}
 
 func CreateBill(ctx context.Context, billID string) (db.Bill, error) {
 	logger.Info("Activity: ", billID)
@@ -32,5 +39,6 @@ func CloseBill(ctx context.Context, billID string) (db.Bill, error) {
 }
 
 func SanityCheck(ctx context.Context) error {
+	fmt.Println("Started sanity check activity")
 	return nil
 }

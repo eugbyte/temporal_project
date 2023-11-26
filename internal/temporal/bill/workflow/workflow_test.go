@@ -87,11 +87,13 @@ func (s *UnitTestSuite) Test_ConfirmBillIncrease_Activity() {
 	s.True(s.env.IsWorkflowCompleted())
 }
 
-func (s *UnitTestSuite) Test_SuccessfulTransferWorkflow() {
-	// Mock activity implementation
-	s.env.OnActivity(activities.SanityCheck, mock.Anything).Return(nil)
+func (s *UnitTestSuite) Test_SanityCheck() {
+	env := s.env
 
-	s.env.ExecuteWorkflow(SanityCheck)
-	s.True(s.env.IsWorkflowCompleted())
-	s.NoError(s.env.GetWorkflowError())
+	// Mock activity implementation
+	env.OnActivity(activities.SanityCheck, mock.Anything).Return(nil)
+
+	env.ExecuteWorkflow(SanityCheck)
+	s.True(env.IsWorkflowCompleted())
+	s.NoError(env.GetWorkflowError())
 }

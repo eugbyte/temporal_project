@@ -34,19 +34,16 @@ func IncreaseBill(ctx workflow.Context, billID string, billDetail db.Transaction
 		c.Receive(ctx, &confirmed)
 	})
 
-	logger.Info("waiting...")
-
 	// blocks untill a signal is received
+	logger.Info("waiting...")
 	selector.Select(ctx)
-
 	logger.Info("signal received")
 
+	// If confirmed, add invoice
 	if !confirmed {
 		logger.Info("confirmation denied")
 		return nil
 	}
-
-	// If confirmed, add invoice
 	return workflow.ExecuteActivity(ctx, activities.IncreaseBill, billID, billDetail).Get(ctx, nil)
 }
 
