@@ -34,8 +34,6 @@ func IncreaseBill(ctx workflow.Context, billID string, billDetail db.Transaction
 		c.Receive(ctx, &confirmed)
 	})
 
-	logger.Info("waiting...")
-
 	// blocks untill a signal is received
 	logger.Info("waiting...")
 	selector.Select(ctx)
