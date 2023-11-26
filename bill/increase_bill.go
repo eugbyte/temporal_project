@@ -30,7 +30,7 @@ func (h *Handler) IncreaseBill(ctx context.Context, billID string, billDetail db
 
 	f, err := strconv.ParseFloat(h.currencyRates[currency], 64)
 	if err != nil {
-		return nil, err
+		return nil, customerrors.NewAppError(err.Error())
 	}
 
 	usd, err := billDetail.Amount.Convert("USD", fmt.Sprintf("%f", 1/f))
