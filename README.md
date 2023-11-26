@@ -1,48 +1,107 @@
-# REST API Starter
+# Temporal project
+Project to explore Temporal API.
 
-This is a RESTful API Starter with a single Hello World API endpoint.
+RESTFUL service to trigger temporal workflows w.r.t to Bills. Ability to start workflow to increase invoice, and await confirmation signal.
 
-## Developing locally
+# Installation
+To run:
+1. Install [Encore.dev](https://encore.dev/docs/install)
+2. Install [Temporal locally](https://learn.temporal.io/getting_started/typescript/dev_environment/#set-up-a-local-temporal-development-cluster)
+3. On a terminal, run `make temporal`.
+4. On another, run `make dev` to run encore.
 
-When you have [installed Encore](https://encore.dev/docs/install), you can create a new Encore application and clone this example with this command.
-
-```bash
-encore app create my-app-name --example=hello-world
+# Overall flow 
+## 1. Create Bill
+```
+curl --location --request POST 'http://127.0.0.1:4000/bill/456'
 ```
 
-## Running locally
-```bash
-encore run
+Response:
+```
+{
+    "ID": "456",
+    "status": "OPEN",
+    "transactions": []
+}
 ```
 
-While `encore run` is running, open <http://localhost:9400/> to view Encore's [local developer dashboard](https://encore.dev/docs/observability/dev-dash).
 
-## Using the API
+## 2. Increase Bill, pending confirmation
+```
+curl --location --request PUT 'http://127.0.0.1:4000/bill/456/' \
+--header 'Content-Type: application/json' \
+--data '{
+    "timestamp": 10000,
+    "itemName": "abc",
+    "amount": {
+        "number": 100,
+        "currency": "USD"
+    }
+}'
 
-To see that your app is running, you can ping the API.
-
-```bash
-curl http://localhost:4000/hello/World
 ```
 
-## Deployment
-
-Deploy your application to a staging environment in Encore's free development cloud:
-
-```bash
-git add -A .
-git commit -m 'Commit message'
-git push encore
+Response
+```
+{
+    "BillID": "456",
+    "WorkflowID": "bill-456-XmrdfVQAtZXJ43BPtd45D"
+}
 ```
 
-Then head over to the [Cloud Dashboard](https://app.encore.dev) to monitor your deployment and find your production URL.
+The `BillID` and the `WorkflowID` will be used to trigger the confirmation endpoint.
 
-From there you can also connect your own AWS or GCP account to use for deployment.
+## 3. Send Confirmation
+```
+curl --location 'http://127.0.0.1:4000/confirm/bill/456/bill-456-XmrdfVQAtZXJ43BPtd45D'
+```
 
-Now off you go into the clouds!
+Response
+```
+{
+    "message": "invoiced confirmed"
+}
 
-## Testing
+```
 
-```bash
-encore test ./...
+## 4. Get Bill
+Specify currency via query param, e.g. `currency=GEL`. Otherwise, currency defaults to `USD`.
+```
+curl --location 'http://127.0.0.1:4000/bill/456?currency=GEL'
+```
+
+Response:
+```
+{
+    "ID": "456",
+    "status": "CLOSED",
+    "transactions": [
+        {
+            "timestamp": 10000,
+            "itemName": "abc",
+            "amount": {
+                "number": "271.00",
+                "currency": "GEL"
+            }
+        }
+    ]
+}
+```
+
+## 5. Close Bill
+```
+curl --location --request PUT 'http://127.0.0.1:4000/close/bill/456/'
+```
+
+Response:
+```
+{
+    "items": [
+        "abc"
+    ],
+    "total": {
+        "number": "100",
+        "currency": "USD"
+    }
+}
 ```

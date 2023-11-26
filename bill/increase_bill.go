@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	customerrors "encore.app/internal/custom_errors"
 	db "encore.app/internal/db/bill"
@@ -23,11 +24,16 @@ func (h *Handler) IncreaseBill(ctx context.Context, billID string, billDetail db
 
 	// Convert the currency to USD
 	currency := billDetail.Amount.CurrencyCode()
-	if _, ok := h.currencies[currency]; !ok {
+	if _, ok := h.currencyRates[currency]; !ok {
 		return nil, customerrors.NewAppError("currency not recognised")
 	}
 
-	usd, err := billDetail.Amount.Convert("USD", h.currencies[currency])
+	f, err := strconv.ParseFloat(h.currencyRates[currency], 64)
+	if err != nil {
+		return nil, err
+	}
+
+	usd, err := billDetail.Amount.Convert("USD", fmt.Sprintf("%f", 1/f))
 	if err != nil {
 		return nil, customerrors.NewAppError("currency conversion failed")
 	}
