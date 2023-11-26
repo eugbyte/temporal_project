@@ -6,7 +6,7 @@ import (
 	"time"
 
 	db "encore.app/internal/db/bill"
-	activities "encore.app/internal/temporal/bill/activity"
+	"encore.app/internal/temporal/bill/activities"
 	"github.com/bojanz/currency"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
