@@ -1,15 +1,11 @@
-package activities
+package workflows
 
 import (
 	"context"
 	"fmt"
 
-	debug "encore.app/internal/logger"
-
 	db "encore.app/internal/db/bill"
 )
-
-var logger = debug.Logger
 
 type BillService interface {
 	Create(billID string) (db.Bill, error)
@@ -25,20 +21,20 @@ func init() {
 	billService = db.BillService
 }
 
-func CreateBill(ctx context.Context, billID string) (db.Bill, error) {
+func CreateBillActivity(ctx context.Context, billID string) (db.Bill, error) {
 	logger.Info("Activity: ", billID)
 	return billService.Create(billID)
 }
 
-func IncreaseBill(ctx context.Context, billID string, billDetail db.TransactionDetail) (db.Bill, error) {
+func IncreaseBillActivity(ctx context.Context, billID string, billDetail db.TransactionDetail) (db.Bill, error) {
 	return billService.Add(billID, billDetail)
 }
 
-func CloseBill(ctx context.Context, billID string) (db.Bill, error) {
+func CloseBillActivity(ctx context.Context, billID string) (db.Bill, error) {
 	return billService.Close(billID)
 }
 
-func SanityCheck(ctx context.Context) error {
+func SanityCheckActivity(ctx context.Context) error {
 	fmt.Println("Started sanity check activity")
 	return nil
 }

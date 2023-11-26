@@ -7,8 +7,7 @@ import (
 	debug "encore.app/internal/logger"
 
 	db "encore.app/internal/db/bill"
-	"encore.app/internal/temporal/bill/activities"
-	"encore.app/internal/temporal/bill/workflows"
+	workflows "encore.app/internal/temporal/bill"
 	"encore.dev"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"go.temporal.io/sdk/client"
@@ -56,9 +55,9 @@ func initHandler() (*Handler, error) {
 	w.RegisterWorkflow(workflows.IncreaseBill)
 	w.RegisterWorkflow(workflows.CloseBill)
 
-	w.RegisterActivity(activities.CreateBill)
-	w.RegisterActivity(activities.IncreaseBill)
-	w.RegisterActivity(activities.CloseBill)
+	w.RegisterActivity(workflows.CreateBillActivity)
+	w.RegisterActivity(workflows.IncreaseBillActivity)
+	w.RegisterActivity(workflows.CloseBillActivity)
 
 	return &Handler{
 		billService: billService,
