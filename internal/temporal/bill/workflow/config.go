@@ -1,4 +1,4 @@
-package temporalbill
+package workflow
 
 import (
 	"time"

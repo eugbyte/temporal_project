@@ -7,7 +7,7 @@ import (
 
 	customerrors "encore.app/internal/custom_errors"
 	db "encore.app/internal/db/bill"
-	temporalbill "encore.app/internal/temporal/bill"
+	workflows "encore.app/internal/temporal/bill/workflow"
 	"go.temporal.io/sdk/client"
 )
 
@@ -40,7 +40,6 @@ func (h *Handler) IncreaseBill(ctx context.Context, billID string, billDetail db
 		TaskQueue: taskQ,
 	}
 
-	workflows := temporalbill.NewWorkFlows(h.billService)
 	_, err = h.client.ExecuteWorkflow(ctx, options, workflows.IncreaseBill, billID, billDetail)
 	if err != nil {
 		return nil, err
@@ -56,7 +55,7 @@ func (h *Handler) IncreaseBill(ctx context.Context, billID string, billDetail db
 func (h *Handler) ConfirmBillIncrease(ctx context.Context, billID string, workflowID string) (*MessageResponse, error) {
 	runId := "" // we did not store runId we can safely leave it empty
 	confirmed := true
-	err := h.client.SignalWorkflow(ctx, workflowID, runId, temporalbill.SignalChannel, confirmed)
+	err := h.client.SignalWorkflow(ctx, workflowID, runId, workflows.SignalChannel, confirmed)
 	if err != nil {
 		return nil, err
 	}
