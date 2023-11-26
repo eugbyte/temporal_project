@@ -1,4 +1,4 @@
-package workflow
+package workflows
 
 import (
 	"errors"
@@ -88,6 +88,17 @@ func (s *UnitTestSuite) Test_ConfirmBillIncrease_Activity() {
 }
 
 func (s *UnitTestSuite) Test_SanityCheck() {
+	env := s.env
+
+	// Mock activity implementation
+	env.OnActivity(activities.SanityCheck, mock.Anything).Return(nil)
+
+	env.ExecuteWorkflow(SanityCheck)
+	s.True(env.IsWorkflowCompleted())
+	s.NoError(env.GetWorkflowError())
+}
+
+func (s *UnitTestSuite) Test_CheckSanity() {
 	env := s.env
 
 	// Mock activity implementation
