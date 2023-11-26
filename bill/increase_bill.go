@@ -22,6 +22,15 @@ func (h *Handler) IncreaseBill(ctx context.Context, billID string, billDetail db
 	byts, _ := json.MarshalIndent(billDetail, "", "\t")
 	fmt.Println(string(byts))
 
+	// check whether bill is closed
+	bill, err := h.billService.Get(billID)
+	if err != nil {
+		return nil, customerrors.NewAppError(err.Error())
+	}
+	if bill.Status == db.CLOSED {
+		return nil, customerrors.NewAppError("bill is already closed")
+	}
+
 	// Convert the currency to USD
 	currency := billDetail.Amount.CurrencyCode()
 	if _, ok := h.currencyRates[currency]; !ok {
