@@ -25,6 +25,8 @@ func init() {
 	billService = db.BillService
 }
 
+// Note that Activities must be named differently from Workflows, otherwise the test mocking fails.
+
 func CreateBillActivity(ctx context.Context, billID string) (db.Bill, error) {
 	logger.Info("Activity: ", billID)
 	return billService.Create(billID)
