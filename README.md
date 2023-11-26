@@ -10,6 +10,9 @@ To run:
 3. On a terminal, run `make temporal`.
 4. On another, run `make dev` to run encore.
 
+# Test
+`make test`
+
 # Overall flow 
 ## 1. Create Bill
 ```
