@@ -31,7 +31,7 @@ func TestUnitTestSuite(t *testing.T) {
 	suite.Run(t, new(UnitTestSuite))
 }
 
-func (s *UnitTestSuite) Test_CreateBill_Activity() {
+func (s *UnitTestSuite) Test_CreateBill() {
 	const billID = "ABC"
 
 	s.env.OnActivity(activities.CreateBill, mock.Anything, billID).Return(db.Bill{}, nil)
@@ -51,7 +51,7 @@ func (s *UnitTestSuite) Test_CreateBill_FailedActivity() {
 	s.Error(s.env.GetWorkflowError())
 }
 
-func (s *UnitTestSuite) Test_CloseBill_Activity() {
+func (s *UnitTestSuite) Test_CloseBill() {
 	const billID = "ABC"
 	mockBill := db.Bill{ID: billID}
 
@@ -66,7 +66,7 @@ func (s *UnitTestSuite) Test_CloseBill_Activity() {
 	s.EqualValues(mockBill, actualBill)
 }
 
-func (s *UnitTestSuite) Test_ConfirmBillIncrease_Activity() {
+func (s *UnitTestSuite) Test_ConfirmBillIncrease() {
 	const billID = "ABC"
 	usd, _ := currency.NewAmount("100", "USD")
 	billDetail := db.TransactionDetail{
