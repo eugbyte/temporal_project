@@ -1,4 +1,4 @@
-start:
+dev:
 	encore run
 
 temporal:

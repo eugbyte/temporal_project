@@ -100,6 +100,8 @@ func (b *BillDB) Get(billID string) (Bill, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
+	logger.Info(b.Bills)
+
 	if _, ok := b.Bills[billID]; !ok {
 		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s does not exist", billID))
 	}

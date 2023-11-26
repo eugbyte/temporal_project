@@ -16,11 +16,7 @@ type BillService interface {
 	Close(billID string) (db.Bill, error)
 }
 
-var billService BillService
-
-func init() {
-	billService = db.New()
-}
+var billService BillService = db.New()
 
 func CreateBill(ctx context.Context, billID string) (db.Bill, error) {
 	logger.Info("Activity: ", billID)

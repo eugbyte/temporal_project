@@ -36,5 +36,5 @@ func (h *Handler) Get(ctx context.Context, billID string, q *GetBillRequest) (db
 		bill.Transactions[i].Amount = amount
 	}
 
-	return h.billService.Get(billID)
+	return bill, nil
 }
