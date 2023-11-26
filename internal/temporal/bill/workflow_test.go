@@ -1,9 +1,12 @@
 package temporalbill
 
 import (
+	"errors"
 	"testing"
+	"time"
 
-	mockdb "encore.app/internal/db/bill"
+	db "encore.app/internal/db/bill"
+	"github.com/bojanz/currency"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"go.temporal.io/sdk/testsuite"
@@ -19,7 +22,8 @@ type UnitTestSuite struct {
 func (s *UnitTestSuite) SetupTest() {
 	s.env = s.NewTestWorkflowEnvironment()
 	// the db is mocked anyway
-	s.mockBillService = mockdb.New()
+	var mockDB = db.New()
+	s.mockBillService = mockDB
 }
 
 func (s *UnitTestSuite) AfterTest(suiteName, testName string) {
@@ -35,21 +39,75 @@ func (s *UnitTestSuite) Test_CreateBill_Activity() {
 	workflows := NewWorkFlows(s.mockBillService)
 	const billID = "ABC"
 
-	s.env.OnActivity(activities.CreateBill, mock.Anything, billID).Return(mockdb.Bill{}, nil)
+	s.env.OnActivity(activities.CreateBill, mock.Anything, billID).Return(db.Bill{}, nil)
 
 	s.env.ExecuteWorkflow(workflows.CreateBill, billID)
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())
 }
 
-func (s *UnitTestSuite) Test_CloseBill_Activity() {
+func (s *UnitTestSuite) Test_CreateBill_FailedActivity() {
 	activities := NewActivities(s.mockBillService)
 	workflows := NewWorkFlows(s.mockBillService)
 	const billID = "ABC"
 
-	s.env.OnActivity(activities.CloseBill, mock.Anything, billID).Return(mockdb.Bill{}, nil)
+	s.env.OnActivity(activities.CreateBill, mock.Anything, billID).Return(db.Bill{}, errors.New("mock_error"))
+
+	s.env.ExecuteWorkflow(workflows.CreateBill, billID)
+	s.True(s.env.IsWorkflowCompleted())
+	s.Error(s.env.GetWorkflowError())
+}
+
+func (s *UnitTestSuite) Test_CloseBill_Activity() {
+	activities := NewActivities(s.mockBillService)
+	workflows := NewWorkFlows(s.mockBillService)
+	const billID = "ABC"
+	mockBill := db.Bill{ID: billID}
+
+	s.env.OnActivity(activities.CloseBill, mock.Anything, billID).Return(mockBill, nil)
 
 	s.env.ExecuteWorkflow(workflows.CloseBill, billID)
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())
+
+	var actualBill db.Bill
+	s.env.GetWorkflowResult(&actualBill)
+	s.EqualValues(mockBill, actualBill)
 }
+
+func (s *UnitTestSuite) Test_ConfirmBillIncrease_Activity() {
+	var mockDB = db.New()
+	activities := NewActivities(mockDB)
+	workflows := NewWorkFlows(mockDB)
+	const billID = "ABC"
+	usd, _ := currency.NewAmount("100", "USD")
+	billDetail := db.TransactionDetail{
+		Timestamp: 1000,
+		ItemName:  "item",
+		Amount:    usd,
+	}
+
+	s.env.OnActivity(activities.IncreaseBill, mock.Anything, billID, billDetail).Return(nil)
+
+	s.env.RegisterDelayedCallback(func() {
+		s.env.SignalWorkflow(SignalChannel, true)
+	}, time.Millisecond)
+
+	s.env.ExecuteWorkflow(workflows.IncreaseBill, billID, billDetail)
+
+	s.NoError(s.env.GetWorkflowError())
+	s.True(s.env.IsWorkflowCompleted())
+}
+
+// func (s *UnitTestSuite) Test_SuccessfulTransferWorkflow() {
+// 	var mockDB = db.New()
+// 	activities := NewActivities(mockDB)
+// 	workflows := NewWorkFlows(mockDB)
+
+// 	// Mock activity implementation
+// 	s.env.OnActivity(activities.SanityCheck, mock.Anything).Return(nil)
+
+// 	s.env.ExecuteWorkflow(workflows.SanityCheck)
+// 	s.True(s.env.IsWorkflowCompleted())
+// 	s.NoError(s.env.GetWorkflowError())
+// }

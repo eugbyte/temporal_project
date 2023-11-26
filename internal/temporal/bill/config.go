@@ -7,6 +7,8 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+const SignalChannel = "confirm-invoice"
+
 var retrypolicy = &temporal.RetryPolicy{
 	InitialInterval:        time.Second,
 	BackoffCoefficient:     2.0,

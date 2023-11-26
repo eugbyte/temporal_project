@@ -8,8 +8,6 @@ import (
 
 var logger = debug.Logger
 
-const SignalChannel = "confirm-invoice"
-
 type BillService interface {
 	Create(billID string) (db.Bill, error)
 	Add(billID string, billDetail db.TransactionDetail) (db.Bill, error)
@@ -36,8 +34,10 @@ func (w *WorkFlow) CreateBill(ctx workflow.Context, billID string) (db.Bill, err
 }
 
 func (w *WorkFlow) IncreaseBill(ctx workflow.Context, billID string, billDetail db.TransactionDetail) error {
+	logger.Info("starting increase bill")
 	// Apply the options.
 	ctx = workflow.WithActivityOptions(ctx, options)
+	activities := NewActivities(w.billService)
 
 	// Wait for confirmation before adding to invoice
 	selector := workflow.NewSelector(ctx)
@@ -49,8 +49,12 @@ func (w *WorkFlow) IncreaseBill(ctx workflow.Context, billID string, billDetail 
 		c.Receive(ctx, &confirmed)
 	})
 
+	logger.Info("waiting...")
+
 	// blocks untill a signal is received
 	selector.Select(ctx)
+
+	logger.Info("signal received")
 
 	if !confirmed {
 		logger.Info("confirmation denied")
@@ -58,17 +62,22 @@ func (w *WorkFlow) IncreaseBill(ctx workflow.Context, billID string, billDetail 
 	}
 
 	// If confirmed, add invoice
-	activities := NewActivities(w.billService)
 	return workflow.ExecuteActivity(ctx, activities.IncreaseBill, billID, billDetail).Get(ctx, nil)
 }
 
 func (w *WorkFlow) CloseBill(ctx workflow.Context, billID string) (db.Bill, error) {
 	// Apply the options.
 	ctx = workflow.WithActivityOptions(ctx, options)
-
 	activities := NewActivities(w.billService)
 
 	var bill db.Bill
 	err := workflow.ExecuteActivity(ctx, activities.CloseBill, billID).Get(ctx, &bill)
 	return bill, err
+}
+
+func (w *WorkFlow) SanityCheck(ctx workflow.Context) error {
+	logger.Info("Sanity Check")
+	activities := NewActivities(w.billService)
+	ctx = workflow.WithActivityOptions(ctx, options)
+	return workflow.ExecuteActivity(ctx, activities.SanityCheck).Get(ctx, nil)
 }
