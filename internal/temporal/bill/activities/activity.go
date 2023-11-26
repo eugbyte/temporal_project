@@ -1,11 +1,15 @@
-package workflows
+package activities
 
 import (
 	"context"
 	"fmt"
 
+	debug "encore.app/internal/logger"
+
 	db "encore.app/internal/db/bill"
 )
+
+var logger = debug.Logger
 
 type BillService interface {
 	Create(billID string) (db.Bill, error)
