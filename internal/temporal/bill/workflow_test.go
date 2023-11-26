@@ -74,7 +74,7 @@ func (s *UnitTestSuite) Test_ConfirmBillIncrease() {
 		Amount:    usd,
 	}
 
-	s.env.OnActivity(IncreaseBillActivity, mock.Anything, billID, billDetail).Return(nil)
+	s.env.OnActivity(IncreaseBillActivity, mock.Anything, billID, billDetail).Return(db.Bill{}, nil)
 
 	s.env.RegisterDelayedCallback(func() {
 		s.env.SignalWorkflow(SignalChannel, true)

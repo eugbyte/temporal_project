@@ -56,6 +56,7 @@ func CloseBill(ctx workflow.Context, billID string) (db.Bill, error) {
 }
 
 func SanityCheck(ctx workflow.Context) error {
+	logger.Info("sanity check")
 	ctx = workflow.WithActivityOptions(ctx, options)
 	return workflow.ExecuteActivity(ctx, SanityCheckActivity).Get(ctx, nil)
 }
