@@ -2,7 +2,10 @@ package billhandler
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
+	customerrors "encore.app/internal/custom_errors"
 	db "encore.app/internal/db/bill"
 	temporalbill "encore.app/internal/temporal/bill"
 	"go.temporal.io/sdk/client"
@@ -14,9 +17,23 @@ type IncreaseBillResp struct {
 }
 
 //encore:api public method=PUT path=/bill/:billID
-func (h *Handler) IncreaseBill(ctx context.Context, billID string, transactionDetail db.TransactionDetail) (*IncreaseBillResp, error) {
-	logger.Info("PUT:", transactionDetail)
+func (h *Handler) IncreaseBill(ctx context.Context, billID string, billDetail db.TransactionDetail) (*IncreaseBillResp, error) {
+	byts, _ := json.MarshalIndent(billDetail, "", "\t")
+	fmt.Println(string(byts))
 
+	// Convert the currency to USD
+	currency := billDetail.Amount.CurrencyCode()
+	if _, ok := h.currencies[currency]; !ok {
+		return nil, customerrors.NewAppError("currency not recognised")
+	}
+
+	usd, err := billDetail.Amount.Convert("USD", h.currencies[currency])
+	if err != nil {
+		return nil, customerrors.NewAppError("currency conversion failed")
+	}
+	billDetail.Amount = usd
+
+	// Start the workflow to increase the bill, which will continue running pending user confirmation via ConfirmBillIncrease
 	workflowID := genWorkFlowID(billID)
 	options := client.StartWorkflowOptions{
 		ID:        workflowID,
@@ -24,7 +41,7 @@ func (h *Handler) IncreaseBill(ctx context.Context, billID string, transactionDe
 	}
 
 	workflows := temporalbill.NewWorkFlow(h.billService)
-	_, err := h.client.ExecuteWorkflow(ctx, options, workflows.IncreaseBill, billID, transactionDetail)
+	_, err = h.client.ExecuteWorkflow(ctx, options, workflows.IncreaseBill, billID, billDetail)
 	if err != nil {
 		return nil, err
 	}
