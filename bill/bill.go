@@ -55,9 +55,9 @@ func initHandler() (*Handler, error) {
 	w.RegisterWorkflow(workflows.IncreaseBill)
 	w.RegisterWorkflow(workflows.CloseBill)
 
-	w.RegisterActivity(workflows.CreateBill)
-	w.RegisterActivity(workflows.IncreaseBill)
-	w.RegisterActivity(workflows.CloseBill)
+	w.RegisterActivity(workflows.CloseBillActivity)
+	w.RegisterActivity(workflows.IncreaseBillActivity)
+	w.RegisterActivity(workflows.CloseBillActivity)
 
 	return &Handler{
 		billService: billService,
