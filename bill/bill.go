@@ -7,8 +7,8 @@ import (
 	debug "encore.app/internal/logger"
 
 	db "encore.app/internal/db/bill"
-	"encore.app/internal/temporal/bill/activities"
-	"encore.app/internal/temporal/bill/workflows"
+	activities "encore.app/internal/temporal/bill/activity"
+	workflows "encore.app/internal/temporal/bill/workflow"
 	"encore.dev"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"go.temporal.io/sdk/client"

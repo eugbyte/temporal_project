@@ -8,7 +8,7 @@ import (
 	debug "encore.app/internal/logger"
 	"github.com/bojanz/currency"
 
-	customerrors "encore.app/internal/custom_errors"
+	customerrors "encore.app/internal/custom_error"
 )
 
 var logger = debug.Logger

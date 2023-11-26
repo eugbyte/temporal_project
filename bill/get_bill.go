@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	customerrors "encore.app/internal/custom_errors"
+	customerrors "encore.app/internal/custom_error"
 	db "encore.app/internal/db/bill"
 )
 

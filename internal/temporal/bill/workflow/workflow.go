@@ -3,7 +3,7 @@ package workflows
 import (
 	db "encore.app/internal/db/bill"
 	debug "encore.app/internal/logger"
-	"encore.app/internal/temporal/bill/activities"
+	activities "encore.app/internal/temporal/bill/activity"
 	"go.temporal.io/sdk/workflow"
 )
 
