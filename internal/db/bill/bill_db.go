@@ -79,6 +79,11 @@ func (b *BillDB) Add(billID string, detail TransactionDetail) (Bill, error) {
 		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s does not exist", billID))
 	}
 
+	_currency := detail.Amount.CurrencyCode()
+	if _currency != "USD" {
+		return Bill{}, customerrors.NewAppError(fmt.Sprintf("currency must be USD, got %s instead", _currency))
+	}
+
 	bill.Transactions = append(bill.Transactions, detail)
 
 	b.Bills[billID] = bill

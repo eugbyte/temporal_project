@@ -21,7 +21,7 @@ func (h *Handler) Get(ctx context.Context, billID string, q *GetBillRequest) (db
 	currency := strings.ToUpper(q.Currency)
 	logger.Info("currency: ", currency)
 
-	if _, ok := h.currencies[currency]; !ok {
+	if _, ok := h.currencyRates[currency]; !ok {
 		return db.Bill{}, customerrors.NewAppError("currency not recognised")
 	}
 
@@ -39,7 +39,7 @@ func (h *Handler) Get(ctx context.Context, billID string, q *GetBillRequest) (db
 
 	for i := 0; i < len(billCopy.Transactions); i++ {
 		amount := billCopy.Transactions[i].Amount
-		amount, _ = amount.Convert(currency, h.currencies[currency])
+		amount, _ = amount.Convert(currency, h.currencyRates[currency])
 		billCopy.Transactions[i].Amount = amount
 	}
 

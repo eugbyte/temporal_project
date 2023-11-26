@@ -1,4 +1,4 @@
-package workflow
+package workflows
 
 import (
 	db "encore.app/internal/db/bill"
@@ -57,7 +57,6 @@ func CloseBill(ctx workflow.Context, billID string) (db.Bill, error) {
 }
 
 func SanityCheck(ctx workflow.Context) error {
-	logger.Info("Sanity Check")
 	ctx = workflow.WithActivityOptions(ctx, options)
 	return workflow.ExecuteActivity(ctx, activities.SanityCheck).Get(ctx, nil)
 }
