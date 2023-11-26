@@ -8,7 +8,7 @@ import (
 
 	customerrors "encore.app/internal/custom_errors"
 	db "encore.app/internal/db/bill"
-	"encore.app/internal/temporal/bill/workflows"
+	workflows "encore.app/internal/temporal/bill"
 	"go.temporal.io/sdk/client"
 )
 

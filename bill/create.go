@@ -4,7 +4,7 @@ import (
 	"context"
 
 	db "encore.app/internal/db/bill"
-	"encore.app/internal/temporal/bill/workflows"
+	workflows "encore.app/internal/temporal/bill"
 	"go.temporal.io/sdk/client"
 )
 

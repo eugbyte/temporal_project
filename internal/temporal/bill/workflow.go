@@ -3,7 +3,6 @@ package workflows
 import (
 	db "encore.app/internal/db/bill"
 	debug "encore.app/internal/logger"
-	"encore.app/internal/temporal/bill/activities"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -15,7 +14,7 @@ func CreateBill(ctx workflow.Context, billID string) (db.Bill, error) {
 	ctx = workflow.WithActivityOptions(ctx, options)
 
 	var bill db.Bill
-	err := workflow.ExecuteActivity(ctx, activities.CreateBill, billID).Get(ctx, &bill)
+	err := workflow.ExecuteActivity(ctx, CreateBillActivity, billID).Get(ctx, &bill)
 	return bill, err
 }
 
@@ -44,7 +43,7 @@ func IncreaseBill(ctx workflow.Context, billID string, billDetail db.Transaction
 		logger.Info("confirmation denied")
 		return nil
 	}
-	return workflow.ExecuteActivity(ctx, activities.IncreaseBill, billID, billDetail).Get(ctx, nil)
+	return workflow.ExecuteActivity(ctx, IncreaseBillActivity, billID, billDetail).Get(ctx, nil)
 }
 
 func CloseBill(ctx workflow.Context, billID string) (db.Bill, error) {
@@ -52,11 +51,11 @@ func CloseBill(ctx workflow.Context, billID string) (db.Bill, error) {
 	ctx = workflow.WithActivityOptions(ctx, options)
 
 	var bill db.Bill
-	err := workflow.ExecuteActivity(ctx, activities.CloseBill, billID).Get(ctx, &bill)
+	err := workflow.ExecuteActivity(ctx, CloseBillActivity, billID).Get(ctx, &bill)
 	return bill, err
 }
 
 func SanityCheck(ctx workflow.Context) error {
 	ctx = workflow.WithActivityOptions(ctx, options)
-	return workflow.ExecuteActivity(ctx, activities.SanityCheck).Get(ctx, nil)
+	return workflow.ExecuteActivity(ctx, SanityCheckActivity).Get(ctx, nil)
 }

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	db "encore.app/internal/db/bill"
-	"encore.app/internal/temporal/bill/activities"
 	"github.com/bojanz/currency"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -34,7 +33,7 @@ func TestUnitTestSuite(t *testing.T) {
 func (s *UnitTestSuite) Test_CreateBill() {
 	const billID = "ABC"
 
-	s.env.OnActivity(activities.CreateBill, mock.Anything, billID).Return(db.Bill{}, nil)
+	s.env.OnActivity(CreateBillActivity, mock.Anything, billID).Return(db.Bill{}, nil)
 
 	s.env.ExecuteWorkflow(CreateBill, billID)
 	s.True(s.env.IsWorkflowCompleted())
@@ -44,7 +43,7 @@ func (s *UnitTestSuite) Test_CreateBill() {
 func (s *UnitTestSuite) Test_CreateBill_FailedActivity() {
 	const billID = "ABC"
 
-	s.env.OnActivity(activities.CreateBill, mock.Anything, billID).Return(db.Bill{}, errors.New("mock_error"))
+	s.env.OnActivity(CreateBillActivity, mock.Anything, billID).Return(db.Bill{}, errors.New("mock_error"))
 
 	s.env.ExecuteWorkflow(CreateBill, billID)
 	s.True(s.env.IsWorkflowCompleted())
@@ -55,7 +54,7 @@ func (s *UnitTestSuite) Test_CloseBill() {
 	const billID = "ABC"
 	mockBill := db.Bill{ID: billID}
 
-	s.env.OnActivity(activities.CloseBill, mock.Anything, billID).Return(mockBill, nil)
+	s.env.OnActivity(CloseBillActivity, mock.Anything, billID).Return(mockBill, nil)
 
 	s.env.ExecuteWorkflow(CloseBill, billID)
 	s.True(s.env.IsWorkflowCompleted())
@@ -75,7 +74,7 @@ func (s *UnitTestSuite) Test_ConfirmBillIncrease() {
 		Amount:    usd,
 	}
 
-	s.env.OnActivity(activities.IncreaseBill, mock.Anything, billID, billDetail).Return(nil)
+	s.env.OnActivity(IncreaseBillActivity, mock.Anything, billID, billDetail).Return(nil)
 
 	s.env.RegisterDelayedCallback(func() {
 		s.env.SignalWorkflow(SignalChannel, true)
@@ -91,9 +90,9 @@ func (s *UnitTestSuite) Test_SanityCheck() {
 	env := s.env
 
 	// Mock activity implementation
-	env.OnActivity(activities.SanityCheck, mock.Anything).Return(nil)
-
+	env.OnActivity(SanityCheckActivity, mock.Anything).Return(nil)
 	env.ExecuteWorkflow(SanityCheck)
+
 	s.True(env.IsWorkflowCompleted())
 	s.NoError(env.GetWorkflowError())
 }
