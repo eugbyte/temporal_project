@@ -4,7 +4,7 @@ import (
 	"context"
 
 	db "encore.app/internal/db/bill"
-	temporalbill "encore.app/internal/temporal/bill"
+	workflows "encore.app/internal/temporal/bill/workflow"
 	"github.com/bojanz/currency"
 	"go.temporal.io/sdk/client"
 )
@@ -21,7 +21,6 @@ func (h *Handler) CloseBill(ctx context.Context, billID string) (*CloseBillResp,
 		TaskQueue: taskQ,
 	}
 
-	workflows := temporalbill.NewWorkFlow(h.billService)
 	we, err := h.client.ExecuteWorkflow(ctx, options, workflows.CloseBill, billID)
 	if err != nil {
 		return nil, err

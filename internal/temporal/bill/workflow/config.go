@@ -1,4 +1,4 @@
-package temporalbill
+package workflow
 
 import (
 	"time"
@@ -6,6 +6,8 @@ import (
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
+
+const SignalChannel = "confirm-invoice"
 
 var retrypolicy = &temporal.RetryPolicy{
 	InitialInterval:        time.Second,

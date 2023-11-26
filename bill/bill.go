@@ -7,7 +7,8 @@ import (
 	debug "encore.app/internal/logger"
 
 	db "encore.app/internal/db/bill"
-	temporalbill "encore.app/internal/temporal/bill"
+	activities "encore.app/internal/temporal/bill/activity"
+	workflows "encore.app/internal/temporal/bill/workflow"
 	"encore.dev"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"go.temporal.io/sdk/client"
@@ -37,7 +38,7 @@ type Handler struct {
 
 // entry point, dependency injection
 func initHandler() (*Handler, error) {
-	billService := db.New()
+	billService := db.BillService
 
 	c, err := client.Dial(client.Options{})
 	if err != nil {
@@ -50,9 +51,6 @@ func initHandler() (*Handler, error) {
 		c.Close()
 		return nil, fmt.Errorf("start temporal worker: %v", err)
 	}
-
-	workflows := temporalbill.NewWorkFlow(billService)
-	activities := temporalbill.NewActivity(billService)
 
 	w.RegisterWorkflow(workflows.CreateBill)
 	w.RegisterWorkflow(workflows.IncreaseBill)

@@ -30,11 +30,18 @@ func (h *Handler) Get(ctx context.Context, billID string, q *GetBillRequest) (db
 		return bill, err
 	}
 
-	for i := 0; i < len(bill.Transactions); i++ {
-		amount := bill.Transactions[i].Amount
-		amount, _ = amount.Convert(currency, h.currencies[currency])
-		bill.Transactions[i].Amount = amount
+	logger.Info(bill)
+
+	billCopy, err := db.DeepCopy(bill)
+	if err != nil {
+		return bill, err
 	}
 
-	return h.billService.Get(billID)
+	for i := 0; i < len(billCopy.Transactions); i++ {
+		amount := billCopy.Transactions[i].Amount
+		amount, _ = amount.Convert(currency, h.currencies[currency])
+		billCopy.Transactions[i].Amount = amount
+	}
+
+	return billCopy, nil
 }

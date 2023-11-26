@@ -4,7 +4,7 @@ import (
 	"context"
 
 	db "encore.app/internal/db/bill"
-	temporalbill "encore.app/internal/temporal/bill"
+	workflows "encore.app/internal/temporal/bill/workflow"
 	"go.temporal.io/sdk/client"
 )
 
@@ -21,7 +21,6 @@ func (h *Handler) Create(ctx context.Context, billID string) (*db.Bill, error) {
 		TaskQueue: taskQ,
 	}
 
-	workflows := temporalbill.NewWorkFlow(h.billService)
 	we, err := h.client.ExecuteWorkflow(ctx, options, workflows.CreateBill, billID)
 	if err != nil {
 		return nil, err

@@ -1,6 +1,7 @@
 package billdb
 
 import (
+	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -36,6 +37,9 @@ type TransactionDetail struct {
 	// stored as USD
 	Amount currency.Amount `json:"amount"`
 }
+
+// Singleton instance to be used by both the Handlers and Temporal workers.
+var BillService = New()
 
 func New() *BillDB {
 	b := BillDB{}
@@ -90,6 +94,10 @@ func (b *BillDB) Close(billID string) (Bill, error) {
 	}
 
 	bill := b.Bills[billID]
+
+	if bill.Status == CLOSED {
+		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s already closed", billID))
+	}
 	bill.Status = CLOSED
 
 	b.Bills[billID] = bill
@@ -100,8 +108,21 @@ func (b *BillDB) Get(billID string) (Bill, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
+	logger.Info(b.Bills)
+
 	if _, ok := b.Bills[billID]; !ok {
 		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s does not exist", billID))
 	}
 	return b.Bills[billID], nil
+}
+
+func DeepCopy(bill Bill) (Bill, error) {
+	var billCopy Bill = Bill{}
+	byts, err := json.Marshal(bill)
+	if err != nil {
+		return billCopy, err
+	}
+	json.Unmarshal(byts, &billCopy)
+	return billCopy, err
+
 }
