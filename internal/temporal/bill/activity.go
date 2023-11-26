@@ -26,3 +26,7 @@ func (a *BillActivity) IncreaseBill(ctx context.Context, billID string, billDeta
 func (a *BillActivity) CloseBill(ctx context.Context, billID string) (db.Bill, error) {
 	return a.billService.Close(billID)
 }
+
+func (a *BillActivity) SanityCheck(ctx context.Context) error {
+	return nil
+}
