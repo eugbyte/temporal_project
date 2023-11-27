@@ -5,6 +5,7 @@ import (
 
 	db "encore.app/internal/db/bill"
 	workflows "encore.app/internal/temporal/bill/workflow"
+	"encore.dev/beta/errs"
 	"github.com/bojanz/currency"
 	"go.temporal.io/sdk/client"
 )
@@ -23,7 +24,7 @@ func (h *Handler) CloseBill(ctx context.Context, billID string) (*CloseBillResp,
 
 	we, err := h.client.ExecuteWorkflow(ctx, options, workflows.CloseBill, billID)
 	if err != nil {
-		return nil, err
+		return nil, errs.Convert(err)
 	}
 
 	logger.Info("started workflow. ", "id: ", we.GetID(), ". run_id:", we.GetRunID())

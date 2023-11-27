@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	customerrors "encore.app/internal/custom_error"
 	debug "encore.app/internal/logger"
 
 	db "encore.app/internal/db/bill"
@@ -27,20 +28,30 @@ func init() {
 
 // Note that Activities must be named differently from Workflows, otherwise the test mocking fails.
 
-func CreateBillActivity(ctx context.Context, billID string) (db.Bill, error) {
+func CreateBillAct(ctx context.Context, billID string) (db.Bill, error) {
 	logger.Info("Activity: ", billID)
-	return billService.Create(billID)
+	bill, err := billService.Create(billID)
+	if err != nil {
+		// stop Temporal from retrying, as either bill ID already exists or bill has been closed
+		err = customerrors.NewNonRetryError(err.Error())
+	}
+	return bill, err
 }
 
-func IncreaseBillActivity(ctx context.Context, billID string, billDetail db.TransactionDetail) (db.Bill, error) {
-	return billService.Add(billID, billDetail)
+func IncreaseBillAct(ctx context.Context, billID string, billDetail db.TransactionDetail) (db.Bill, error) {
+	bill, err := billService.Add(billID, billDetail)
+	if err != nil {
+		// stop Temporal from retrying, as bill has been been closed
+		err = customerrors.NewNonRetryError(err.Error())
+	}
+	return bill, err
 }
 
-func CloseBillActivity(ctx context.Context, billID string) (db.Bill, error) {
+func CloseBillAct(ctx context.Context, billID string) (db.Bill, error) {
 	return billService.Close(billID)
 }
 
-func SanityCheckActivity(ctx context.Context) error {
+func SanityCheckAct(ctx context.Context) error {
 	fmt.Println("Started sanity check activity")
 	return nil
 }

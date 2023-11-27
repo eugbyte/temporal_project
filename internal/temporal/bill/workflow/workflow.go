@@ -15,7 +15,7 @@ func CreateBill(ctx workflow.Context, billID string) (db.Bill, error) {
 	ctx = workflow.WithActivityOptions(ctx, options)
 
 	var bill db.Bill
-	err := workflow.ExecuteActivity(ctx, activities.CreateBillActivity, billID).Get(ctx, &bill)
+	err := workflow.ExecuteActivity(ctx, activities.CreateBillAct, billID).Get(ctx, &bill)
 	return bill, err
 }
 
@@ -44,7 +44,7 @@ func IncreaseBill(ctx workflow.Context, billID string, billDetail db.Transaction
 		logger.Info("confirmation denied")
 		return nil
 	}
-	return workflow.ExecuteActivity(ctx, activities.IncreaseBillActivity, billID, billDetail).Get(ctx, nil)
+	return workflow.ExecuteActivity(ctx, activities.IncreaseBillAct, billID, billDetail).Get(ctx, nil)
 }
 
 func CloseBill(ctx workflow.Context, billID string) (db.Bill, error) {
@@ -52,12 +52,12 @@ func CloseBill(ctx workflow.Context, billID string) (db.Bill, error) {
 	ctx = workflow.WithActivityOptions(ctx, options)
 
 	var bill db.Bill
-	err := workflow.ExecuteActivity(ctx, activities.CloseBillActivity, billID).Get(ctx, &bill)
+	err := workflow.ExecuteActivity(ctx, activities.CloseBillAct, billID).Get(ctx, &bill)
 	return bill, err
 }
 
 func SanityCheck(ctx workflow.Context) error {
 	logger.Info("sanity check")
 	ctx = workflow.WithActivityOptions(ctx, options)
-	return workflow.ExecuteActivity(ctx, activities.SanityCheckActivity).Get(ctx, nil)
+	return workflow.ExecuteActivity(ctx, activities.SanityCheckAct).Get(ctx, nil)
 }

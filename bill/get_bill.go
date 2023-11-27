@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	customerrors "encore.app/internal/custom_error"
 	db "encore.app/internal/db/bill"
+	"encore.dev/beta/errs"
 )
 
 type GetBillRequest struct {
@@ -22,19 +22,25 @@ func (h *Handler) Get(ctx context.Context, billID string, q *GetBillRequest) (db
 	logger.Info("currency: ", currency)
 
 	if _, ok := h.currencyRates[currency]; !ok {
-		return db.Bill{}, customerrors.NewAppError("currency not recognised")
+		return db.Bill{}, &errs.Error{
+			Code:    errs.InvalidArgument,
+			Message: "currency not recognised",
+		}
 	}
 
 	bill, err := h.billService.Get(billID)
 	if err != nil {
-		return bill, err
+		return bill, &errs.Error{
+			Code:    errs.NotFound,
+			Message: err.Error(),
+		}
 	}
 
 	logger.Info(bill)
 
 	billCopy, err := db.DeepCopy(bill)
 	if err != nil {
-		return bill, err
+		return bill, errs.Convert(err)
 	}
 
 	for i := 0; i < len(billCopy.Transactions); i++ {

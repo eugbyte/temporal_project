@@ -7,8 +7,6 @@ import (
 
 	debug "encore.app/internal/logger"
 	"github.com/bojanz/currency"
-
-	customerrors "encore.app/internal/custom_error"
 )
 
 var logger = debug.Logger
@@ -53,7 +51,7 @@ func (b *BillDB) Create(billID string) (Bill, error) {
 
 	if bill, ok := b.Bills[billID]; ok {
 		logger.Info("bill: ", bill)
-		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s already exist", billID))
+		return Bill{}, fmt.Errorf("%s already exist", billID)
 	}
 
 	b.Bills[billID] = Bill{
@@ -70,18 +68,18 @@ func (b *BillDB) Add(billID string, detail TransactionDetail) (Bill, error) {
 	defer b.mu.Unlock()
 
 	if _, ok := b.Bills[billID]; !ok {
-		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s does not exist", billID))
+		return Bill{}, fmt.Errorf("%s does not exist", billID)
 	}
 
 	bill := b.Bills[billID]
 
 	if bill.Status == CLOSED {
-		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s does not exist", billID))
+		return Bill{}, fmt.Errorf("%s does not exist", billID)
 	}
 
 	_currency := detail.Amount.CurrencyCode()
 	if _currency != "USD" {
-		return Bill{}, customerrors.NewAppError(fmt.Sprintf("currency must be USD, got %s instead", _currency))
+		return Bill{}, fmt.Errorf("currency must be USD, got %s instead", _currency)
 	}
 
 	bill.Transactions = append(bill.Transactions, detail)
@@ -95,13 +93,13 @@ func (b *BillDB) Close(billID string) (Bill, error) {
 	defer b.mu.Unlock()
 
 	if _, ok := b.Bills[billID]; !ok {
-		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s does not exist", billID))
+		return Bill{}, fmt.Errorf("%s does not exist", billID)
 	}
 
 	bill := b.Bills[billID]
 
 	if bill.Status == CLOSED {
-		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s already closed", billID))
+		return Bill{}, fmt.Errorf("%s already closed", billID)
 	}
 	bill.Status = CLOSED
 
@@ -116,7 +114,7 @@ func (b *BillDB) Get(billID string) (Bill, error) {
 	logger.Info(b.Bills)
 
 	if _, ok := b.Bills[billID]; !ok {
-		return Bill{}, customerrors.NewAppError(fmt.Sprintf("%s does not exist", billID))
+		return Bill{}, fmt.Errorf("%s does not exist", billID)
 	}
 	return b.Bills[billID], nil
 }
