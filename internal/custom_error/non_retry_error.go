@@ -11,6 +11,6 @@ func NewNonRetryError(msg string) NonRetryError {
 	}
 }
 
-func (a NonRetryError) Error() string {
-	return a.Msg
+func (e NonRetryError) Error() string {
+	return e.Msg
 }
