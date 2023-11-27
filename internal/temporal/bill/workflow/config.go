@@ -14,7 +14,7 @@ var retrypolicy = &temporal.RetryPolicy{
 	BackoffCoefficient:     2.0,
 	MaximumInterval:        100 * time.Second,
 	MaximumAttempts:        0, // unlimited retries
-	NonRetryableErrorTypes: []string{"ApplicationError"},
+	NonRetryableErrorTypes: []string{"NonRetryError"},
 }
 
 var options = workflow.ActivityOptions{
