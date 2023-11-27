@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strconv"
 
-	customerrors "encore.app/internal/custom_error"
 	db "encore.app/internal/db/bill"
 	workflows "encore.app/internal/temporal/bill/workflow"
+	"encore.dev/beta/errs"
 	"go.temporal.io/sdk/client"
 )
 
@@ -25,26 +25,38 @@ func (h *Handler) IncreaseBill(ctx context.Context, billID string, billDetail db
 	// check whether bill is closed
 	bill, err := h.billService.Get(billID)
 	if err != nil {
-		return nil, customerrors.NewAppError(err.Error())
+		return nil, errs.Convert(err)
 	}
 	if bill.Status == db.CLOSED {
-		return nil, customerrors.NewAppError("bill is already closed")
+		return nil, &errs.Error{
+			Code:    errs.InvalidArgument,
+			Message: "bill is already closed",
+		}
 	}
 
 	// Convert the currency to USD
 	currency := billDetail.Amount.CurrencyCode()
 	if _, ok := h.currencyRates[currency]; !ok {
-		return nil, customerrors.NewAppError("currency not recognised")
+		return nil, &errs.Error{
+			Code:    errs.InvalidArgument,
+			Message: "currency is not recognised",
+		}
 	}
 
 	f, err := strconv.ParseFloat(h.currencyRates[currency], 64)
 	if err != nil {
-		return nil, customerrors.NewAppError(err.Error())
+		return nil, &errs.Error{
+			Code:    errs.Internal,
+			Message: err.Error(),
+		}
 	}
 
 	usd, err := billDetail.Amount.Convert("USD", fmt.Sprintf("%f", 1/f))
 	if err != nil {
-		return nil, customerrors.NewAppError("currency conversion failed")
+		return nil, &errs.Error{
+			Code:    errs.Internal,
+			Message: "currency conversion failed: " + err.Error(),
+		}
 	}
 	billDetail.Amount = usd
 
@@ -72,7 +84,7 @@ func (h *Handler) ConfirmBillIncrease(ctx context.Context, billID string, workfl
 	confirmed := true
 	err := h.client.SignalWorkflow(ctx, workflowID, runId, workflows.SignalChannel, confirmed)
 	if err != nil {
-		return nil, err
+		return nil, errs.Convert(err)
 	}
 	return &MessageResponse{
 		Message: "invoiced confirmed",
