@@ -1,5 +1,5 @@
 # Temporal project
-Project to explore Temporal API.
+Project to explore Temporal API with Encore.dev framework.
 
 RESTFUL service to trigger temporal workflows w.r.t to Bills. Ability to start workflow to increase invoice, and await confirmation signal.
 
